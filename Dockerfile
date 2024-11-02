@@ -11,4 +11,4 @@ from base as test
 run ["pytest", "./src"]
 
 from base as main
-CMD ["python3", "./src/main.py"]
+CMD ["flask", "--app", "./src/main.py", "run", "--host=0.0.0.0"]
