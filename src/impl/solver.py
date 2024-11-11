@@ -1,56 +1,92 @@
 import itertools
 from .puzzle import Puzzle
+from .house import House
+from .cell import Cell
+from collections import deque
+
 
 def solve(puzzle):
     did_something = True
     while(did_something):
         did_something = False
-        if (eval_naked_singles(puzzle)):
+        
+        print("1")
+        if (eval_all_naked_subsets(puzzle, 1, False, True)):
             did_something = True
             # No need to reset loop after this
-        if (eval_hidden_singles(puzzle)):
+
+        if not puzzle.undetermined_cells: 
+            return
+
+        print("2")
+        if (eval_all_naked_subsets(puzzle, 2, False, True)):
             did_something = True
             continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
+        print("3")
+        if (eval_all_naked_subsets(puzzle, 3, True, False)):
+            did_something = True
+            continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
+        print("4")
+        if (eval_all_naked_subsets(puzzle, 4, True, False)):
+            did_something = True
+            continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
         
 
-def eval_naked_singles(puzzle):
-    work_set = set(itertools.chain.from_iterable([group.nodes for group in puzzle.rows]))
+def eval_all_naked_subsets(puzzle: Puzzle, n: int, stop_early=True, requeue=False):
+    queue = deque(puzzle.houses) # might be better to randomize the order ?
     did_something = False
-    while work_set:
-        node = work_set.pop()
-        print("processing node", node)
-        # Handle a node having exactly one value
-        if (node.value is not None):
-            for group in node.groups:
-                for neighbor in group.nodes:
-                    if (neighbor == node): 
-                        continue
+    while queue:
+        house = queue.popleft()
+        affected_cells = eval_naked_subsets(house, n)
 
-                    if neighbor.discard_value_option(node.value):
-                        # did remove at least one option
-                        did_something = True
-                        if neighbor.value is not None:
-                            # if we removed an option, and now it has a determined value, now we check the other neighbors!
-                            work_set.update(set(itertools.chain.from_iterable([group.nodes for group in neighbor.groups])))
+        if (affected_cells):
+            did_something = True
+
+            if (stop_early):
+                return did_something
+            
+            if (requeue):
+                cell: Cell
+                for cell in affected_cells:
+                    for affected_house in cell.houses:
+                        if affected_house != house:
+                            queue.append(affected_house)
+
     return did_something
+
+def eval_naked_subsets(house: House, cells: int):
+    affected_cells = []
+    combinations = list(itertools.combinations(house.cells, cells)) 
+
+    for combination in combinations:
+        # For each unique combination of n cells
+
+        unique_candidates = set(itertools.chain.from_iterable(cell.candidates for cell in combination))
+
+        if len(unique_candidates) <= cells:
+            # we identified a cet of n cells that contains n candidates
+            for cell in house.cells:
+                if cell not in combination: # Slightly inefficient: combination is a tuple. Set might be faster?
+                    for candidate in unique_candidates:
+                        if cell.remove_candidate(candidate):
+                            affected_cells.append(cell)
+    return affected_cells
+
 
 def eval_hidden_singles(puzzle: Puzzle):
     did_something = False
-
-    for group in puzzle.rows + puzzle.boxes + puzzle.columns:
-        possible_cell_indcides_by_value = {}
-        for index, node in enumerate(group.nodes):
-            if not node.value:
-                for value in node.value_options:
-                    if value not in possible_cell_indcides_by_value.keys():
-                        possible_cell_indcides_by_value[value] = set()
-                    possible_cell_indcides_by_value[value].add(index)
-        for value in possible_cell_indcides_by_value.keys():
-            indices = possible_cell_indcides_by_value[value]
-            if len(indices) == 1:
-                did_something = True
-                for index in indices:
-                    group.nodes[index].set_value(value)
     return did_something
 
 def eval_intersections(puzzle: Puzzle):
@@ -61,8 +97,5 @@ def eval_intersections(puzzle: Puzzle):
 
     # Ex 1 (Pointing): if all of the 1s within box 2 lie in row 3, then we may eliminate all of the 1s in row 3 not in box 2
     # Ex 2 (Claiming): if all of the 1s within row 2 lie in box 3, then we may eliminate all of the 1s in box 3 not in row 2
-
-    for group in puzzle.rows:
-        pass
     return did_something
 

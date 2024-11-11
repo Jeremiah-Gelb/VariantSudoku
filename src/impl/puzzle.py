@@ -1,28 +1,37 @@
-from .node import Node
-from .group import Group
+from .cell import Cell
+from .house import House
 class Puzzle:
 
     # assuming n by n for now. 
     def __init__(self, row_values : list[list[int]]):
-        self.rows = []
-        self.columns = []
-        self.boxes = []
+        self.rows: list[list[Cell]] = []
+        self.houses: list[House] = []
+        self.undetermined_cells = set()
 
         # build rows
         for row_index, row in enumerate(row_values):
-            node_list = []
+            cells = set()
+            cell_list = []
             for column_index, value in enumerate(row):
-                row_column = (row_index + 1, column_index + 1)
-                node = Node(value, row_column) if value else Node(row_column=row_column)
-                node_list.append(node)
-            self.rows.append(Group(node_list))
+                row_column = (row_index, column_index)
+                cell = Cell(value, row_column, puzzle=self) if value else Cell(row_column=row_column, puzzle=self)
 
-        # build columns   
-        for row_index in range(len(row_values[0])):
-            node_list = []
-            for column_index in range(len(row_values[0])):
-                node_list.append(self.rows[column_index].nodes[row_index])
-            self.columns.append(Group(node_list))
+                if not cell.value:
+                    self.undetermined_cells.add(cell)
+
+                cell_list.append(cell)
+                cells.add(cell)
+
+            self.houses.append(House(cells))
+            self.rows.append(cell_list)
+
+        # build columns
+        size = len(self.rows[0]) 
+        for row_index in range(size):
+            cells = set()
+            for column_index in range(size):
+                cells.add(self.rows[column_index][row_index])
+            self.houses.append(House(cells))
 
         # build boxes
 
@@ -40,32 +49,33 @@ class Puzzle:
         ]
 
         for box_boundary in box_boundaries:
-            node_list = []
+            cells = set()
             for column_index in range(box_boundary[2], box_boundary[3] + 1):
                 for row_index in range(box_boundary[0], box_boundary[1] + 1):
-                    node_list.append(self.rows[column_index].nodes[row_index])
-            self.boxes.append(Group(node_list))
+                    cells.add(self.rows[column_index][row_index])
+            self.houses.append(House(cells))
 
     def __repr__(self):
         string = "Rows: \n"
         for row in self.rows:
             string += str(row) + "\n"
-        
-        #string += "Columns: \n"
-        #for column in self.columns:
-        #    string += str(column) + "\n"
-        
-        #string += "Boxes: \n"
-        #for box in self.boxes:
-        #    string += str(box) + "\n"
 
         return string
     
-    def __eq__(self, other):
-        return self.rows == other.rows
-
-
+    def equivalent(self, other):
+        # only used for testing
+        if (len(self.rows) != len(other.rows)):
+            return False
         
+        for row_index, row in enumerate(self.rows):
+            other_row = other.rows[row_index]
+            if len(row) != len(other_row):
+                return False
+            for cell_index, cell in enumerate(row):
+                if not cell.equivalent(other_row[cell_index]):
+                    return False
+        return True
+
 
 
 
