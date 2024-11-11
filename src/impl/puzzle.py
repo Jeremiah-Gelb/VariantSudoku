@@ -65,15 +65,17 @@ class Puzzle:
     def equivalent(self, other):
         # only used for testing
         if (len(self.rows) != len(other.rows)):
-            return False
+            raise Exception("Puzzle mismatch number of rows")
         
         for row_index, row in enumerate(self.rows):
             other_row = other.rows[row_index]
             if len(row) != len(other_row):
-                return False
+                raise Exception("Puzzle mismatch row length")
+
             for cell_index, cell in enumerate(row):
-                if not cell.equivalent(other_row[cell_index]):
-                    return False
+                if cell.value != other_row[cell_index].value:
+                    raise Exception("Puzzle mismatching VALUE", row_index, cell_index, cell.value, other_row[cell_index].value)
+
         return True
 
 

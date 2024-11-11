@@ -17,34 +17,34 @@ class Cell:
         return str([row, column, self.value, sorted(self.candidates)])
         #return str(self.value) if self.value else 'n'
 
-    def remove_candidate(self, option):
+    def remove_candidate(self, candidate):
         len_before = len(self.candidates)
-        self.candidates.discard(option)
+        self.candidates.discard(candidate)
         len_after = len(self.candidates)
 
-        if (len_before != len_after and len_after == 1):
-            self.value = next(iter(self.candidates))
-            if self.puzzle:
-                self.puzzle.undetermined_cells.remove(self)
-
-        if (len_before != len_after and len_after == 0):
-            self.value = None
+        if (len_before != len_after):
+            if len_after == 1:
+                # Cell value is determined
+                self.value = next(iter(self.candidates))
+                if self.puzzle:
+                    self.puzzle.undetermined_cells.remove(self)
+            
+            if len_after == 0:
+                raise Exception("No options for cell")
+            
+            for house in self.houses:
+                house.candidate_to_cell_map[candidate].discard(self)
 
         return len_before != len_after
-    
-    def set_value(self, value):
-        self.value = value
-        self.candidates = {value}
-        if self.puzzle:
-            self.puzzle.undetermined_cells.remove(self)
     
     def get_intersecting_groups(self, other):
         return self.houses.intersection(other.groups)
     
     def equivalent(self, other):
         # used for testing. By default, we want to compare pointers for hash, eq, etc
-        return self.value == other.value and self.candidates == other.candidates
-
+        if self.value != other.value or self.candidates != other.candidates:
+            raise Exception("Cell mismatch\n" + str(self) + "\n" + str(other))
+        return True
     
 def get_intersecting_groups(a, b):
     return a.groups.intersection(b.groups)

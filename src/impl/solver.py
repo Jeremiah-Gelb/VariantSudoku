@@ -10,15 +10,23 @@ def solve(puzzle):
     while(did_something):
         did_something = False
         
-        print("1")
+        print("\nSize 1 Naked Subsets")
         if (eval_all_naked_subsets(puzzle, 1, False, True)):
             did_something = True
             # No need to reset loop after this
 
         if not puzzle.undetermined_cells: 
             return
+        
+        print("\nSize 1 Hidden Subsets")
+        if (eval_all_hidden_subsets(puzzle, 1, False, True)):
+            did_something = True
+            # No need to reset loop after this
 
-        print("2")
+        if not puzzle.undetermined_cells: 
+            return
+
+        print("\nSize 2 Naked Subsets")
         if (eval_all_naked_subsets(puzzle, 2, False, True)):
             did_something = True
             continue
@@ -26,7 +34,15 @@ def solve(puzzle):
         if not puzzle.undetermined_cells: 
             return
         
-        print("3")
+        print("\nSize 2 Hidden Subsets")
+        if (eval_all_hidden_subsets(puzzle, 2, False, True)):
+            did_something = True
+            continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
+        print("\nSize 3 Naked Subsets")
         if (eval_all_naked_subsets(puzzle, 3, True, False)):
             did_something = True
             continue
@@ -34,8 +50,24 @@ def solve(puzzle):
         if not puzzle.undetermined_cells: 
             return
         
-        print("4")
+        print("\nSize 3 Hidden Subsets")
+        if (eval_all_hidden_subsets(puzzle, 3, True, False)):
+            did_something = True
+            continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
+        print("\nSize 4 Naked Subsets")
         if (eval_all_naked_subsets(puzzle, 4, True, False)):
+            did_something = True
+            continue
+
+        if not puzzle.undetermined_cells: 
+            return
+        
+        print("\nSize 4 Hidden Subsets")
+        if (eval_all_hidden_subsets(puzzle, 4, True, False)):
             did_something = True
             continue
 
@@ -85,9 +117,47 @@ def eval_naked_subsets(house: House, cells: int):
     return affected_cells
 
 
-def eval_hidden_singles(puzzle: Puzzle):
+def eval_all_hidden_subsets(puzzle: Puzzle, n: int, stop_early=True, requeue=False):
+    queue = deque(puzzle.houses) # might be better to randomize the order ?
     did_something = False
+    while queue:
+        house = queue.popleft()
+        affected_cells = eval_hidden_subsets(house, n)
+
+        if (affected_cells):
+            did_something = True
+
+            if (stop_early):
+                return did_something
+            
+            if (requeue):
+                cell: Cell
+                for cell in affected_cells:
+                    for affected_house in cell.houses:
+                        if affected_house != house:
+                            queue.append(affected_house)
+
     return did_something
+
+
+def eval_hidden_subsets(house: House, values: int):
+    affected_cells = []
+    combinations = list(itertools.combinations([1, 2, 3, 4, 5, 6, 7, 8, 9], values)) 
+
+    for combination in combinations:
+        # For each unique combination of n values
+
+        unique_cells = set(itertools.chain.from_iterable(house.candidate_to_cell_map[value] for value in combination))
+
+        if len(unique_cells) <= values:
+            # we identified that the n values are only contained in n cells.
+            # so we can remove all other candidates from those cells
+            for cell in unique_cells:
+                for candidate in list(cell.candidates): # slight hack, make a copy to avoid removing from the list where we are iterating
+                    if candidate not in combination: # Slightly inefficient: combination is a tuple. Set might be faster?
+                        if cell.remove_candidate(candidate):
+                            affected_cells.append(cell)
+    return affected_cells
 
 def eval_intersections(puzzle: Puzzle):
     did_something = False
