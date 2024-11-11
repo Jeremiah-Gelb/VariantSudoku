@@ -23,7 +23,7 @@ def test_discard_value_option():
    assert node.value_options == set()
 
 
-def test_make_puzzle():
+def test_naked_singles():
    solved_values = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
       [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -55,7 +55,48 @@ def test_make_puzzle():
    print("unsolved")
    print(puzzle_to_solve)
 
-   solve(puzzle_to_solve)
+   eval_naked_singles(puzzle_to_solve)
+   print("solved")
+   print(puzzle_to_solve)
+
+   assert puzzle_to_solve == solution
+
+def test_hidden_singles():
+   n = None
+   solved_values = [
+      [n, n, n, n, n, n, n, n, 1],
+      [n, n, n, n, n, 1, n, n, n],
+      [n, n, 1, n, n, n, n, n, n],
+      [n, n, n, n, n, n, n, 1, n],
+      [n, n, n, n, 1, n, n, n, n],
+      [n, 1, n, n, n, n, n, n, n],
+      [n, n, n, n, n, n, 1, n, n],
+      [n, n, n, 1, n, n, n, n, n],
+      [1, n, n, n, n, n, n, n, n],
+   ]
+
+   solution = Puzzle(solved_values)
+
+
+   unsolved_values = [
+      [n, n, n, n, n, n, n, n, n],
+      [n, n, n, n, n, 1, n, n, n],
+      [n, n, 1, n, n, n, n, n, n],
+      [n, n, n, n, n, n, n, 1, n],
+      [n, n, n, n, 1, n, n, n, n],
+      [n, 1, n, n, n, n, n, n, n],
+      [n, n, n, n, n, n, 1, n, n],
+      [n, n, n, 1, n, n, n, n, n],
+      [1, n, n, n, n, n, n, n, n],
+   ]
+
+   puzzle_to_solve = Puzzle(unsolved_values)
+   print("unsolved")
+   print(puzzle_to_solve)
+
+   eval_naked_singles(puzzle_to_solve)
+   eval_hidden_singles(puzzle_to_solve)
+   
    print("solved")
    print(puzzle_to_solve)
 

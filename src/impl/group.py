@@ -26,3 +26,9 @@ class Group:
     
     def __hash__(self):
         return hash(self.nodes)
+    
+    def get_intersecting_nodes(self, other):
+        return self.node_set.intersection(other.node_set)
+    
+def get_intersecting_nodes(a: Group, b: Group):
+    return a.node_set.intersection(b.node_set)

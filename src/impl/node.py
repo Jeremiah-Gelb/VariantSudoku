@@ -23,8 +23,18 @@ class Node:
 
         return len_before != len_after
     
+    def set_value(self, value):
+        self.value = value
+        self.value_options = {value}
+    
     def __eq__(self, other):
         return other is not None and self.row_column == other.row_column and self.value is other.value
     
     def __hash__(self):
         return hash(self.row_column)
+    
+    def get_intersecting_groups(self, other):
+        return self.groups.intersection(other.groups)
+    
+def get_intersecting_groups(a, b):
+    return a.groups.intersection(b.groups)
