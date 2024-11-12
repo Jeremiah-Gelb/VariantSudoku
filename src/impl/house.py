@@ -5,6 +5,7 @@ from .cell import Cell
 class House:
     def __init__(self, cells: set[Cell]):
         self.cells = cells
+        self.intersecting_houses: set[House] = set()
 
         # need to fix to support non 9x9
         self.candidate_to_cell_map = {
@@ -23,9 +24,15 @@ class House:
             for candidate in cell.candidates:
                 self.candidate_to_cell_map[candidate].add(cell)
 
-        # bit of a hack :)
+        # bit of a hack :) Link the cell to this house, and link this house to other houses touching that cell
         for node in self.cells:
+            for house in node.houses:
+                if self != house:
+                    self.intersecting_houses.add(house)
+                    house.intersecting_houses.add(self)
+            
             node.houses.add(self)
+
     
     def get_intersecting_cells(self, other):
         return self.cells.intersection(other.cells)

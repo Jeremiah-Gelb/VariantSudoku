@@ -196,6 +196,54 @@ def test_eval_all_hidden_subsets():
 
    assert puzzle_to_solve.equivalent(solution)
 
+def test_eval_intersection():
+   # https://hodoku.sourceforge.net/en/show_example.php?file=lc101&tech=Locked+Candidates+Type+1+%28Pointing%29
+   # row 3
+   cell_list = [
+      Cell(row_column=(0,0), candidates={3, 5, 7}), # has a 5 (also in box 1)
+      Cell(row_column=(0,1), candidates={5, 6, 7}), # has a 5 (also in box 1)
+      Cell(row_column=(0,2), value=1),
+      Cell(row_column=(0,3), value=9),
+      Cell(row_column=(0,4), candidates={7, 8}),
+      Cell(row_column=(0,5), value=4),
+      Cell(row_column=(0,6), candidates={5, 3}), # has a 5 (not in box 1)
+      Cell(row_column=(0,7), candidates={6, 7, 8}),
+      Cell(row_column=(0,8), value = 2)
+   ]
+
+   house1 = House(set(cell_list))
+
+   # box 1
+   cell_list2 = [
+      Cell(row_column=(0,0), value=9),
+      Cell(row_column=(0,0), value=8),
+      Cell(row_column=(0,0), value=4),
+      Cell(row_column=(0,3), candidates={3, 7}),
+      Cell(row_column=(0,4), candidates={7, 6}),
+      Cell(row_column=(0,3), value = 2),
+      cell_list[0],
+      cell_list[1],
+      cell_list[2]
+   ]
+   house2 = House(set(cell_list2))
+
+   eval_intersections(house1, house2)
+
+   expected_cell_list = [
+      Cell(row_column=(0,0), candidates={3, 5, 7}), # has a 5
+      Cell(row_column=(0,1), candidates={5, 6, 7}), # has a 5
+      Cell(row_column=(0,2), value=1),
+      Cell(row_column=(0,3), value=9),
+      Cell(row_column=(0,4), candidates={7, 8}),
+      Cell(row_column=(0,5), value=4),
+      Cell(row_column=(0,6), value=3), # eliminated the 5
+      Cell(row_column=(0,7), candidates={6, 7, 8}),
+      Cell(row_column=(0,8), value = 2)
+   ]
+
+   for index, cell in enumerate(cell_list):
+      assert cell.equivalent(expected_cell_list[index])
+
 def test_solve_easy():
    n = None
    unsolved_values = [
@@ -298,4 +346,40 @@ def test_solve_hard():
    solution = Puzzle(solved_values)
 
    print("Test Solve Hard End")
+   assert puzzle_to_solve.equivalent(solution)
+
+def test_solve_extreme():
+   print("Test Solve Extreme Start")
+   n = None
+   unsolved_values = [
+      [3, n, n, n, n, 8, n, 7, n],
+      [6, n, n, 9, 2, n, n, n, n],
+      [2, n, n, n, n, n, 8, n, n],
+      [n, n, 1, n, 9, n, n, n, 5],
+      [n, n, n, 3, 8, n, n, n, 9],
+      [8, n, n, 5, n, n, 4, n, n],
+      [n, n, n, n, n, n, 6, n, n],
+      [n, 2, n, 6, 5, n, n, n, n],
+      [5, n, n, n, n, n, 7, n, 4]
+   ]
+
+   puzzle_to_solve = Puzzle(unsolved_values)
+
+   solve(puzzle_to_solve, True)
+
+   solved_values = [
+      [3, 9, 5, 1, 4, 8, 2, 7, 6],
+      [6, 7, 8, 9, 2, 3, 5, 4, 1],
+      [2, 1, 4, 7, 6, 5, 8, 9, 3],
+      [7, 6, 1, 4, 9, 2, 3, 8, 5],
+      [4, 5, 2, 3, 8, 7, 1, 6, 9],
+      [8, 3, 9, 5, 1, 6, 4, 2, 7],
+      [9, 4, 3, 8, 7, 1, 6, 5, 2],
+      [1, 2, 7, 6, 5, 4, 9, 3, 8],
+      [5, 8, 6, 2, 3, 9, 7, 1, 4]
+   ]
+
+   solution = Puzzle(solved_values)
+   
+   print(puzzle_to_solve)
    assert puzzle_to_solve.equivalent(solution)
