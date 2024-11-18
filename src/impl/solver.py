@@ -5,11 +5,20 @@ from .cell import Cell
 from collections import deque
 
 
-def solve(puzzle, debug=False):
+def solve(puzzle, debug=False, use_rcv=False):
     did_something = True
     while(did_something):
         did_something = False
         
+        if use_rcv:
+            log(debug, "Trying RCV")
+            affected_cells = propagate_rcv_constraint(puzzle)
+            if affected_cells:
+                did_something = True
+                log(debug, "Eliminated Candidates using rcv", affected_cells)
+                continue
+
+
         log(debug, "Trying Size 1 Naked Subsets")
         affected_cells = eval_first_naked_subsets(puzzle, 1)
         if (affected_cells):
@@ -89,7 +98,7 @@ def solve(puzzle, debug=False):
         if not puzzle.undetermined_cells: 
             return
         
-        log(debug, "Size 4 Hidden Subsets")
+        log(debug, "Tring Size 4 Hidden Subsets")
         affected_cells = eval_first_hidden_subsets(puzzle, 4)
         if (affected_cells):
             log(debug, "Found Size 4 Hidden Subsets", affected_cells)
@@ -98,10 +107,47 @@ def solve(puzzle, debug=False):
 
         if not puzzle.undetermined_cells: 
             return
+
 def log(debug, *args):
     if (debug):
         print(args)
-        
+
+
+def propagate_rcv_constraint(puzzle: Puzzle):
+    # For each Row = R, Column = C, Value = V
+    # That implies the existance of another cell
+    # Where Row = V, Column = R, and Value = C
+    # (r, c, v) => (v, r, c) => (c, v, r) => (r, c, v)
+    # Also don't forget that we index arrays at 0, but rcv is notated starting at 1
+
+    # Now say you are looking at a cell with unknown value (r, c, x)
+    # Well, that must be pointed at by the cell (c, x, r)
+    # So the question of "What is the value x at Row = r, Column = c"
+    # Is the same as saying in Row = c, what is the column where the Value = r lies
+
+    affected_cells = set()
+
+    for row_index, row in enumerate(puzzle.rows):
+        for col_index, cell in enumerate(row):
+            target_value = row_index + 1
+            target_row: list[Cell] = puzzle.rows[col_index]
+            candidate_values = set(i + 1 for i in range(0,9) if target_value in target_row[i].candidates)
+            intersect = cell.candidates.intersection(candidate_values)
+            if len(intersect) < len(cell.candidates):
+                copy = set(cell.candidates)
+                for c in copy:
+                    if c not in intersect:
+                        affected_cells.add(cell)
+                        cell.remove_candidate(c)
+    return affected_cells
+     
+def right_shift_rotate_tuple(tuple):
+    x, y, z = tuple
+    return (z, x, y)
+
+def left_shift_rotate_tuple(tuple):
+    x, y, z = tuple
+    return (y, z, x)
 
 def eval_all_naked_subsets(puzzle: Puzzle, n: int, stop_early=True, requeue=False):
     queue = deque(puzzle.houses) # might be better to randomize the order ?

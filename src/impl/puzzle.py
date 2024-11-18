@@ -3,7 +3,7 @@ from .house import House
 class Puzzle:
 
     # assuming n by n for now. 
-    def __init__(self, row_values : list[list[int]]):
+    def __init__(self, row_values : list[list[int]], negative_diagonal=False):
         self.rows: list[list[Cell]] = []
         self.houses: list[House] = []
         self.undetermined_cells = set()
@@ -55,8 +55,14 @@ class Puzzle:
                     cells.add(self.rows[column_index][row_index])
             self.houses.append(House(cells))
 
+        if negative_diagonal:
+            cells = set()
+            for i in range(size):
+                cells.add(self.rows[i][i])
+            self.houses.append(House(cells))
+
     def __repr__(self):
-        string = "Rows: \n"
+        string = ""
         for row in self.rows:
             string += str(row) + "\n"
 

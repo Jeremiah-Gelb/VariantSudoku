@@ -16,6 +16,7 @@ class Cell:
         row, column = self.row_column
         #return str([row, column, self.value, sorted(self.candidates)])
         return str(self.value) if self.value else 'n'
+        #return str(sorted(self.candidates))
 
     def remove_candidate(self, candidate):
         len_before = len(self.candidates)

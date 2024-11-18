@@ -365,7 +365,7 @@ def test_solve_extreme():
 
    puzzle_to_solve = Puzzle(unsolved_values)
 
-   solve(puzzle_to_solve, True)
+   solve(puzzle_to_solve)
 
    solved_values = [
       [3, 9, 5, 1, 4, 8, 2, 7, 6],
@@ -381,5 +381,28 @@ def test_solve_extreme():
 
    solution = Puzzle(solved_values)
    
-   print(puzzle_to_solve)
+   # print(puzzle_to_solve)
    assert puzzle_to_solve.equivalent(solution)
+
+def test_rcv_neg_diag():
+   print("Test Solve Extreme Start")
+   n = None
+   unsolved_values = [
+      [1, 4, n, n, n, n, n, n, n],
+      [n, 2, n, n, n, n, n, n, n],
+      [n, n, 3, n, n, n, n, n, n],
+      [n, n, n, 4, n, n, n, n, n],
+      [n, n, n, n, 5, n, n, n, n],
+      [n, n, n, n, n, 6, n, n, n],
+      [n, n, n, n, n, n, 7, n, n],
+      [n, n, n, n, n, n, n, 8, n],
+      [n, n, n, n, n, n, n, 6, 9]
+   ]
+
+   puzzle_to_solve = Puzzle(unsolved_values, True)
+
+   solve(puzzle_to_solve, True, True)
+
+   print(puzzle_to_solve)
+   # need to add more constraints
+   assert True
