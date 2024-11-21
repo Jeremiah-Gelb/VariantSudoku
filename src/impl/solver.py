@@ -1,112 +1,140 @@
 import itertools
 from .puzzle import Puzzle
+from .puzzle import Constraint
 from .house import House
 from .cell import Cell
 from collections import deque
+from enum import Enum
 
+class SolveTechnique(Enum):
+    NAKED_SUBSETS_1 = 1
+    NAKED_SUBSETS_2 = 2
+    NAKED_SUBSETS_3 = 3
+    NAKED_SUBSETS_4 = 4
+    HIDDEN_SUBSETS_1 = 5
+    HIDDEN_SUBSETS_2 = 6
+    HIDDEN_SUBSETS_3 = 7
+    HIDDEN_SUBSETS_4 = 8
+    INTERSECTIONS = 9
 
-def solve(puzzle, debug=False, use_rcv=False):
+default = set(s for s in SolveTechnique)
+
+def solve(puzzle, debug=False, solve_techniques: set[SolveTechnique] = default):
+    solve_logical(puzzle, debug, solve_techniques)
+
+def solve_logical(puzzle, debug=False, solve_techniques: set[SolveTechnique] = set()):
     did_something = True
     while(did_something):
         did_something = False
         
-        if use_rcv:
+        if Constraint.RCV in puzzle.constraints:
             log(debug, "Trying RCV")
             affected_cells = propagate_rcv_constraint(puzzle)
             if affected_cells:
                 did_something = True
                 log(debug, "Eliminated Candidates using rcv", affected_cells)
                 continue
+            if not puzzle.undetermined_cells: 
+                return
 
 
-        log(debug, "Trying Size 1 Naked Subsets")
-        affected_cells = eval_first_naked_subsets(puzzle, 1)
-        if (affected_cells):
-            log(debug, "Found Size 1 Naked Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.NAKED_SUBSETS_1 in solve_techniques:
+            log(debug, "Trying Size 1 Naked Subsets")
+            affected_cells = eval_first_naked_subsets(puzzle, 1)
+            if (affected_cells):
+                log(debug, "Found Size 1 Naked Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Trying Size 1 Hidden Subsets")
-        affected_cells = eval_first_hidden_subsets(puzzle, 1)
-        if (affected_cells):
-            log(debug, "Found Size 1 Hidden Subsets", affected_cells)
-            did_something = True
-            continue
-            # No need to reset loop after this
+        if SolveTechnique.HIDDEN_SUBSETS_1 in solve_techniques:
+            log(debug, "Trying Size 1 Hidden Subsets")
+            affected_cells = eval_first_hidden_subsets(puzzle, 1)
+            if (affected_cells):
+                log(debug, "Found Size 1 Hidden Subsets", affected_cells)
+                did_something = True
+                continue
+                # No need to reset loop after this
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
 
-        affected_cells = eval_first_naked_subsets(puzzle, 2)
-        if (affected_cells):
-            log(debug, "Found Size 2 Naked Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.NAKED_SUBSETS_2 in solve_techniques:
+            affected_cells = eval_first_naked_subsets(puzzle, 2)
+            if (affected_cells):
+                log(debug, "Found Size 2 Naked Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Trying Size 2 Hidden Subsets")
-        affected_cells = eval_first_hidden_subsets(puzzle, 2)
-        if (affected_cells):
-            log(debug, "Found Size 2 Hidden Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.HIDDEN_SUBSETS_2 in solve_techniques:
+            log(debug, "Trying Size 2 Hidden Subsets")
+            affected_cells = eval_first_hidden_subsets(puzzle, 2)
+            if (affected_cells):
+                log(debug, "Found Size 2 Hidden Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Trying Intersections")
-        affected_cells = eval_first_intersection(puzzle)
-        if affected_cells:
-            log(debug, "Found Intersections", affected_cells)
-            did_something = True
-            continue
-        if not puzzle.undetermined_cells: 
-            return
+        if SolveTechnique.INTERSECTIONS in solve_techniques:
+            log(debug, "Trying Intersections")
+            affected_cells = eval_first_intersection(puzzle)
+            if affected_cells:
+                log(debug, "Found Intersections", affected_cells)
+                did_something = True
+                continue
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Size 3 Naked Subsets")
-        affected_cells = eval_first_naked_subsets(puzzle, 3)
-        if (affected_cells):
-            log(debug, "Found Size 3 Naked Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.NAKED_SUBSETS_3 in solve_techniques:
+            log(debug, "Size 3 Naked Subsets")
+            affected_cells = eval_first_naked_subsets(puzzle, 3)
+            if (affected_cells):
+                log(debug, "Found Size 3 Naked Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Trying Size 3 Hidden Subsets")
-        affected_cells = eval_first_hidden_subsets(puzzle, 3)
-        if (affected_cells):
-            log(debug, "Found Size 3 Hidden Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.HIDDEN_SUBSETS_3 in solve_techniques:
+            log(debug, "Trying Size 3 Hidden Subsets")
+            affected_cells = eval_first_hidden_subsets(puzzle, 3)
+            if (affected_cells):
+                log(debug, "Found Size 3 Hidden Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Trying Size 4 Naked Subsets")
-        affected_cells = eval_first_naked_subsets(puzzle, 4)
-        if (affected_cells):
-            log(debug, "Found Size 4 Naked Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.NAKED_SUBSETS_4 in solve_techniques:
+            log(debug, "Trying Size 4 Naked Subsets")
+            affected_cells = eval_first_naked_subsets(puzzle, 4)
+            if (affected_cells):
+                log(debug, "Found Size 4 Naked Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
         
-        log(debug, "Tring Size 4 Hidden Subsets")
-        affected_cells = eval_first_hidden_subsets(puzzle, 4)
-        if (affected_cells):
-            log(debug, "Found Size 4 Hidden Subsets", affected_cells)
-            did_something = True
-            continue
+        if SolveTechnique.HIDDEN_SUBSETS_4 in solve_techniques:
+            log(debug, "Tring Size 4 Hidden Subsets")
+            affected_cells = eval_first_hidden_subsets(puzzle, 4)
+            if (affected_cells):
+                log(debug, "Found Size 4 Hidden Subsets", affected_cells)
+                did_something = True
+                continue
 
-        if not puzzle.undetermined_cells: 
-            return
+            if not puzzle.undetermined_cells: 
+                return
 
 def log(debug, *args):
     if (debug):

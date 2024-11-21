@@ -1,12 +1,19 @@
 from .cell import Cell
 from .house import House
+from enum import Enum
+
+class Constraint(Enum):
+    RCV = 1
+    NEGATIVE_DIAGONAL = 2
+
 class Puzzle:
 
     # assuming n by n for now. 
-    def __init__(self, row_values : list[list[int]], negative_diagonal=False):
+    def __init__(self, row_values : list[list[int]], constraints: set[Constraint] = set()):
         self.rows: list[list[Cell]] = []
         self.houses: list[House] = []
         self.undetermined_cells = set()
+        self.constraints = constraints
 
         # build rows
         for row_index, row in enumerate(row_values):
@@ -55,7 +62,7 @@ class Puzzle:
                     cells.add(self.rows[column_index][row_index])
             self.houses.append(House(cells))
 
-        if negative_diagonal:
+        if Constraint.NEGATIVE_DIAGONAL in self.constraints:
             cells = set()
             for i in range(size):
                 cells.add(self.rows[i][i])
@@ -83,6 +90,24 @@ class Puzzle:
                     raise Exception("Puzzle mismatching VALUE", row_index, cell_index, cell.value, other_row[cell_index].value)
 
         return True
+    
+    def copy(self):
+        # Generate a new puzzle
+        row_values : list[list[int]] = []
+        for row in self.rows:
+            values = []
+            for cell in row:
+                values.append(cell.value)
+            row_values.append(values)
+
+        cp = Puzzle(row_values, self.constraints)
+
+        # copy the solve state
+        for row_index, row in enumerate(self.rows):
+            for cell_index, cell in enumerate(row):
+                copy_cell = cp.rows[row_index][cell_index]
+                copy_cell.candidates = set(cell.candidates)
+                copy_cell.value = int(cell.value)
 
 
 

@@ -399,9 +399,9 @@ def test_rcv_neg_diag():
       [n, n, n, n, n, n, n, 6, 9]
    ]
 
-   puzzle_to_solve = Puzzle(unsolved_values, True)
+   puzzle_to_solve = Puzzle(unsolved_values, {Constraint.NEGATIVE_DIAGONAL})
 
-   solve(puzzle_to_solve, True, True)
+   solve(puzzle_to_solve, True, {s for s in SolveTechnique})
 
    print(puzzle_to_solve)
    # need to add more constraints
